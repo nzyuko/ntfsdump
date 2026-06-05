@@ -1,4 +1,5 @@
 mod ntfs;
+mod sam;
 
 use std::path::PathBuf;
 
@@ -21,7 +22,7 @@ struct Cli {
 enum Command {
     /// Acquire SAM and SYSTEM hives into an output directory.
     Dump {
-        /// Directory where acquired hives will be written.
+        /// Directory where copied hives will be written.
         #[arg(short, long, default_value = ".")]
         out: PathBuf,
 
@@ -49,6 +50,12 @@ enum Command {
         /// Write raw bytes to this file instead of printing base64.
         #[arg(short, long)]
         out: Option<PathBuf>,
+    },
+
+    /// Parse a copied SAM hive and print local account entries.
+    Sam {
+        /// Path to a copied SAM hive.
+        sam: PathBuf,
     },
 }
 
@@ -89,6 +96,10 @@ fn main() -> anyhow::Result<()> {
                     base64::engine::general_purpose::STANDARD.encode(data)
                 );
             }
+        }
+        Command::Sam { sam } => {
+            let report = sam::parse_sam_report(&sam)?;
+            println!("{report}");
         }
     }
 
